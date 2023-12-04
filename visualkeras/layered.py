@@ -8,14 +8,14 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
                  max_xy: int = 2000,
                  scale_z: float = 0.1, scale_xy: float = 4, type_ignore: list = None, index_ignore: list = None,
                  color_map: dict = None, one_dim_orientation: str = 'z',
-                 background_fill: Any = 'white', draw_volume: bool = True, padding: int = 10,
+                 background_fill: Any = 'black', draw_volume: bool = True, padding: int = 10,
                  spacing: int = 10, draw_funnel: bool = True, shade_step=10, legend: bool = False,
-                 font: ImageFont = None, font_color: Any = 'black') -> Image:
+                 font: ImageFont = None, font_color: Any = 'white') -> Image:
     """
     Generates a architecture visualization for a given linear keras model (i.e. one input and output tensor for each
     layer) in layered style (great for CNN).
 
-    :param model: A keras model that will be visualized.
+    ::param model A keras model that will be visualized.
     :param to_file: Path to the file to write the created image to. If the image does not exist yet it will be created, else overwritten. Image type is inferred from the file ending. Providing None will disable writing.
     :param min_z: Minimum z size in pixel a layer will have.
     :param min_xy: Minimum x and y size in pixel a layer will have.
@@ -90,19 +90,25 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
         else:
             raise RuntimeError(f"not supported tensor shape {layer.output_shape}")
 
-        shape = shape[1:]  # drop batch size
-
-        if len(shape) == 1:
-            if one_dim_orientation in ['x', 'y', 'z']:
-                shape = (1, ) * "xyz".index(one_dim_orientation) + shape
+        if len(shape) >= 4:
+            x = min(max(shape[1] * scale_xy, x), max_xy)
+            y = min(max(shape[2] * scale_xy, y), max_xy)
+            z = min(max(self_multiply(shape[3:]) * scale_z, z), max_z)
+        elif len(shape) == 3:
+            x = min(max(shape[1] * scale_xy, x), max_xy)
+            y = min(max(shape[2] * scale_xy, y), max_xy)
+            z = min(max(z), max_z)
+        elif len(shape) == 2:
+            if one_dim_orientation == 'x':
+                x = min(max(shape[1] * scale_xy, x), max_xy)
+            elif one_dim_orientation == 'y':
+                y = min(max(shape[1] * scale_xy, y), max_xy)
+            elif one_dim_orientation == 'z':
+                z = min(max(shape[1] * scale_z, z), max_z)
             else:
-                raise ValueError(f"unsupported orientation: {one_dim_orientation}")
-
-        shape = shape + (1, ) * (4 - len(shape))  # expand 4D.
-
-        x = min(max(shape[0] * scale_xy, x), max_xy)
-        y = min(max(shape[1] * scale_xy, y), max_xy)
-        z = min(max(self_multiply(shape[2:]) * scale_z, z), max_z)
+                raise ValueError(f"unsupported orientation {one_dim_orientation}")
+        else:
+            raise RuntimeError(f"not supported tensor shape {layer.output_shape}")
 
         box = Box()
 
@@ -184,8 +190,8 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
     if legend:
         if font is None:
             font = ImageFont.load_default()
-
-        text_height = font.getsize("Ag")[1]
+        bbox = font.getbbox('Ag')
+        text_height = bbox[3] - bbox[1]
         cube_size = text_height
 
         de = 0
@@ -196,8 +202,10 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
 
         for layer_type in layer_types:
             label = layer_type.__name__
-            text_size = font.getsize(label)
-            label_patch_size = (cube_size + de + spacing + text_size[0], cube_size + de)
+            
+            bbox = font.getbbox(label)
+            width = bbox[2] - bbox[0]
+            label_patch_size = (cube_size + de + spacing + width, cube_size + de)
             # this only works if cube_size is bigger than text height
 
             img_box = Image.new('RGBA', label_patch_size, background_fill)
