@@ -6,7 +6,7 @@ from .layer_utils import *
 
 def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, max_z: int = 400,
                  max_xy: int = 2000,
-                 scale_z: float = 0.1, scale_xy: float = 4, type_ignore: list = None, index_ignore: list = None,
+                 scale_z: float = 0.1, scale_xy: float = 10, type_ignore: list = None, index_ignore: list = None,
                  color_map: dict = None, one_dim_orientation: str = 'z',
                  background_fill: Any = 'black', draw_volume: bool = True, padding: int = 10,
                  spacing: int = 10, draw_funnel: bool = True, shade_step=10, legend: bool = False,
