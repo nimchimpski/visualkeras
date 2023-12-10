@@ -1,21 +1,21 @@
-from PIL import ImageFont
+from PIL import ImageFont, ImageDraw, Image
 from math import ceil
 from .utils import *
 from .layer_utils import *
 
 
 def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, max_z: int = 400,
-                 max_xy: int = 2000,
-                 scale_z: float = 0.1, scale_xy: float = 10, type_ignore: list = None, index_ignore: list = None,
+                 max_xy: int = 2000, scale_xy: float = 10,
+                 scale_z: float = 0.4, scale_x: float = 4, type_ignore: list = None, index_ignore: list = None,
                  color_map: dict = None, one_dim_orientation: str = 'z',
                  background_fill: Any = 'black', draw_volume: bool = True, padding: int = 10,
-                 spacing: int = 10, draw_funnel: bool = True, shade_step=10, legend: bool = False,
+                 spacing: int = 10, draw_funnel: bool = True, shade_step=50, legend: bool = False,
                  font: ImageFont = None, font_color: Any = 'white') -> Image:
     """
     Generates a architecture visualization for a given linear keras model (i.e. one input and output tensor for each
     layer) in layered style (great for CNN).
 
-    ::param model A keras model that will be visualized.
+    ::param model A keras model that will be  visualized.
     :param to_file: Path to the file to write the created image to. If the image does not exist yet it will be created, else overwritten. Image type is inferred from the file ending. Providing None will disable writing.
     :param min_z: Minimum z size in pixel a layer will have.
     :param min_xy: Minimum x and y size in pixel a layer will have.
@@ -41,6 +41,7 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
     """
 
     # Iterate over the model to compute bounds and generate boxes
+
 
     boxes = list()
     layer_y = list()
@@ -90,21 +91,55 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
         else:
             raise RuntimeError(f"not supported tensor shape {layer.output_shape}")
 
+        print(f'\n---index={index}')
+        print(f"---layer_type= {layer_type.__name__}")
+        print(f"---shape={shape}")
+
+        # shape >=4 means conv layer
         if len(shape) >= 4:
-            x = min(max(shape[1] * scale_xy, x), max_xy)
+            print(f'---len(shape)=>=4 = {shape}')
+            # x should scale with num of neurons (= num filters in conv layer)
+            print(f'---shape[3] num filters={shape[3]}')
+            x = min(max(shape[1] *  scale_xy, x), max_xy)
+            linespacing = x / shape[2]
+            # y should scale with size of image
             y = min(max(shape[2] * scale_xy, y), max_xy)
+            #  z should scale with num of filters
             z = min(max(self_multiply(shape[3:]) * scale_z, z), max_z)
+            print(f"---scaled z by numfilters ~ {shape[3]*scale_z} to {z}")
+        # shape == 3 means RNN layer
         elif len(shape) == 3:
+            print(f'---len(shape)==3')
+
             x = min(max(shape[1] * scale_xy, x), max_xy)
             y = min(max(shape[2] * scale_xy, y), max_xy)
-            z = min(max(z), max_z)
+            z = min(max(z), max_z) #???
+            print(f' ---z not scaled')
+        # shape == 2 means dense layer
         elif len(shape) == 2:
+            # if flatten layer, scale by num of nodes in previous layer
+            if layer_type.__name__ == 'Flatten':
+                print(f'---layer_type==Flatten')
+                size = model.layers[index - 1].output_shape[3]
+                print(f'---nodes/size={size}')   
+            else:
+                size = shape[1]       
+            print(f'---len(shape)==2. should be a dense layer')
+            # scale x|y|z by num of nodes in layer
             if one_dim_orientation == 'x':
-                x = min(max(shape[1] * scale_xy, x), max_xy)
+                x = min(max(size * scale_x, x), max_xy)
+                print(f'---size * {scale_x} = {size * scale_x}')
+                print(f'---x scaled by {size}={x}')
             elif one_dim_orientation == 'y':
-                y = min(max(shape[1] * scale_xy, y), max_xy)
+                y = min(max(size * scale_y, y), max_xy)
+                print(f'---size * {scale_y} = {size * scale_y}')
+                print(f'---y scaled by {size}={y}')
             elif one_dim_orientation == 'z':
-                z = min(max(shape[1] * scale_z, z), max_z)
+                z = min(max(size * scale_z, z), max_z)
+                print(f'---size * {scale_z} = {size * scale_z}') 
+                print(f'---scaled z by {size * scale_z}={z}')
+
+                
             else:
                 raise ValueError(f"unsupported orientation {one_dim_orientation}")
         else:
@@ -112,7 +147,7 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
 
         box = Box()
 
-        box.de = 0
+        box.de = 6
         if draw_volume:
             box.de = x / 3
 
@@ -128,7 +163,11 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
         box.y2 = box.y1 + y
 
         box.fill = color_map.get(layer_type, {}).get('fill', color_wheel.get_color(layer_type))
+
+        print(f"---box.fill={box.fill}")
+
         box.outline = color_map.get(layer_type, {}).get('outline', 'black')
+        print(f"\n---box.outline={box.outline}")
         color_map[layer_type] = {'fill': box.fill, 'outline': box.outline}
 
         box.shade = shade_step
@@ -166,19 +205,21 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
     for box in boxes:
 
         pen = aggdraw.Pen(get_rgba_tuple(box.outline))
+        funnelpen = aggdraw.Pen((255, 0, 0, 255)
+)
 
         if last_box is not None and draw_funnel:
             draw.line([last_box.x2 + last_box.de, last_box.y1 - last_box.de,
-                       box.x1 + box.de, box.y1 - box.de], pen)
+                       box.x1 + box.de, box.y1 - box.de], funnelpen)
 
             draw.line([last_box.x2 + last_box.de, last_box.y2 - last_box.de,
-                       box.x1 + box.de, box.y2 - box.de], pen)
+                       box.x1 + box.de, box.y2 - box.de], funnelpen)
 
             draw.line([last_box.x2, last_box.y2,
-                       box.x1, box.y2], pen)
+                       box.x1, box.y2], funnelpen)
 
             draw.line([last_box.x2, last_box.y1,
-                       box.x1, box.y1], pen)
+                       box.x1, box.y1], funnelpen)
 
         box.draw(draw)
 
@@ -231,6 +272,29 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
             draw_box.flush()
             img_box.paste(img_text, mask=img_text)
             patches.append(img_box)
+
+        text = "Conv layer depth  scaled by num filters (= nodes). Dense layer width  by num nodes."
+        
+        print(f'---textsize={size}')
+
+        canvas = Image.new('RGB', (1,1), 'black')
+        print(f'\n---(type)canvas={type(canvas)}')
+        print(f'\n---canvas.size={canvas.size}')
+        drawoncanvas = ImageDraw.Draw(canvas) # grab a pen which draws on that canvas
+        print(f'\n---(type)drawoncanvas={type(drawoncanvas)}')
+        text_box = drawoncanvas.textbbox((0,0), text, font=font)
+        newsize = (text_box[2], text_box[3])
+        print(f'\n---text_box={text_box}')
+        canvas = canvas.resize(newsize)
+        drawoncanvas = ImageDraw.Draw(canvas)
+        text_pos = (0,0)
+        drawoncanvas.text(text_pos, text, font=font, fill=font_color)
+
+        patches.append(canvas)
+
+       
+            
+            
 
         legend_image = linear_layout(patches, max_width=img.width, max_height=img.height, padding=padding, spacing=spacing,
                                      background_fill=background_fill, horizontal=True)
