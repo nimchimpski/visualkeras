@@ -4,11 +4,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="visualkeras",
-    version="0.0.2",
-    author="Paul Gavrikov",
-    author_email="paul.gavrikov@hs-offenburg.de",
-    description="Architecture visualization of Keras models",
+    name="visualkeras_mod",
+    version="0.1.0-alpha",
+    author="Paul Gavrikov, modified by nimchimpski",
+    author_email="paul.gavrikov@hs-offenburg.de, alex@nimchimpski.com",
+    description="Architecture visualization of Keras models - updtated to work PILL 8.0.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/paulgavrikov/visualkeras",

@@ -244,7 +244,7 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
         if font is None:
             font = ImageFont.load_default()
         '''
-        calculate size with bbox instead of textsize
+        calculate size with bbox instead of textsize (deprecated))
         '''
         bbox = font.getbbox('Ag')
         text_height = bbox[3] - bbox[1]
@@ -259,7 +259,7 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
         for layer_type in layer_types:
             label = layer_type.__name__
             '''
-            calculate size with bbox instead of textsize
+            calculate size with bbox instead of textsize (deprecated))
             added layerspacing=0 to keep legend compact
             '''
             layerspacing = 0 # gap between icon and label

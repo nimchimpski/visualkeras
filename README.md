@@ -1,3 +1,23 @@
+
+
+
+
+This is an attempt to get the layered_view method of visualkeras functioning again.
+This was the only programmatic visualisation that I could find that met my needs  for another project that required visualisations.
+For fun I thought I'd see if I could get it to work as its own package - visualkeras_mod.
+Now works with Pillow 10.1.0
+
+Graph view does not work, yet.
+Nor have I done any testing with Functional models.
+
+Now defaults to Dense layers having a width proportional to num neurons, which seems to work better than using the z axis if there are many layers. Convolution layers default to reflecting the num filters in their depth.
+
+Possible TODO is normalising the scaling so that visual size is never clipped by the max restraints.
+
+
+ 
+### ORIGINAL README
+
 # visualkeras for Keras / TensorFlow
 
 [![Latest Version](https://img.shields.io/pypi/v/visualkeras.svg)](https://pypi.python.org/pypi/visualkeras)
