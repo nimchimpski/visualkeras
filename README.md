@@ -19,8 +19,19 @@ Now defaults to Dense layers having a width proportional to num neurons, which s
 
 Possible TODO is normalising the scaling so that visual size is never clipped by the max restraints.
 
+## Installation of visualkeras_mod
 
- 
+To install the latest version of this package directly from GitHub, run the following command:
+pip install git+https://github.com/nimchimpski/visualkeras_mod.git@layerfix
+
+Requirements:
+python>=3.1
+pillow>=10.1.0
+numpy>=1.26.2
+aggdraw>=1.3.18
+
+---------------------------------------------------------------------------- 
+
 # ORIGINAL README
 
 # visualkeras for Keras / TensorFlow
