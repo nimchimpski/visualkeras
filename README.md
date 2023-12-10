@@ -8,7 +8,12 @@ For fun I thought I'd see if I could get it to work as its own package - visualk
 Now works with Pillow 10.1.0
 
 Graph view does not work, yet.
-Nor have I done any testing with Functional models.
+-nor have I done any testing with Functional models.
+I have removed:
+-example models 
+-scripts to generate models
+-example images
+
 
 Now defaults to Dense layers having a width proportional to num neurons, which seems to work better than using the z axis if there are many layers. Convolution layers default to reflecting the num filters in their depth.
 
