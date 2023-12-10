@@ -172,8 +172,10 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
         box.fill = color_map.get(layer_type, {}).get('fill', color_wheel.get_color(layer_type))
 
         print(f"---box.fill={box.fill}")
-
-        box.outline = color_map.get(layer_type, {}).get('outline', 'black')
+        '''
+        changed outline to background_fill
+        '''
+        box.outline = color_map.get(layer_type, {}).get('outline', background_fill)
         print(f"\n---box.outline={box.outline}")
         color_map[layer_type] = {'fill': box.fill, 'outline': box.outline}
 
