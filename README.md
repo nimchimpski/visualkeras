@@ -16,7 +16,7 @@ Possible TODO is normalising the scaling so that visual size is never clipped by
 
 
  
-### ORIGINAL README
+# ORIGINAL README
 
 # visualkeras for Keras / TensorFlow
 
