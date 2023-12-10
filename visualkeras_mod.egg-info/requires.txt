@@ -1,0 +1,3 @@
+pillow>=10.1.0
+numpy>=1.26.2
+aggdraw>=1.3.18
