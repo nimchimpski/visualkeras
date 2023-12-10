@@ -3,12 +3,19 @@ from math import ceil
 from .utils import *
 from .layer_utils import *
 
+'''
+changed default: 
+background to black
+scaling to y (one_dim_orientation)
+padding to 40
+'''
+
 
 def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, max_z: int = 400,
                  max_xy: int = 2000, scale_xy: float = 10,
-                 scale_z: float = 0.4, scale_x: float = 4, type_ignore: list = None, index_ignore: list = None,
-                 color_map: dict = None, one_dim_orientation: str = 'z',
-                 background_fill: Any = 'black', draw_volume: bool = True, padding: int = 10,
+                 scale_z: float = 0.4, scale_x: float = 4, scale_y: float = 4, type_ignore: list = None, index_ignore: list = None,
+                 color_map: dict = None, one_dim_orientation: str = 'y',
+                 background_fill: Any = 'black', draw_volume: bool = True, padding: int = 40,
                  spacing: int = 10, draw_funnel: bool = True, shade_step=50, legend: bool = False,
                  font: ImageFont = None, font_color: Any = 'white') -> Image:
     """
@@ -205,8 +212,13 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
     for box in boxes:
 
         pen = aggdraw.Pen(get_rgba_tuple(box.outline))
-        funnelpen = aggdraw.Pen((255, 0, 0, 255)
-)
+        '''
+        changed funnel lines to first layer fill color
+        '''
+        # funnelpen = aggdraw.Pen(color_map[tf.keras.layers.Conv2D])
+        funnelpen = aggdraw.Pen(next(iter(color_map.values()))['fill'])
+        print(f'---funelpen color = {next(iter(color_map.values()))["fill"]}')
+
 
         if last_box is not None and draw_funnel:
             draw.line([last_box.x2 + last_box.de, last_box.y1 - last_box.de,
@@ -231,6 +243,9 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
     if legend:
         if font is None:
             font = ImageFont.load_default()
+        '''
+        calculate size with bbox instead of textsize
+        '''
         bbox = font.getbbox('Ag')
         text_height = bbox[3] - bbox[1]
         cube_size = text_height
@@ -243,7 +258,12 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
 
         for layer_type in layer_types:
             label = layer_type.__name__
-            
+            '''
+            calculate size with bbox instead of textsize
+            added layerspacing=0 to keep legend compact
+            '''
+            layerspacing = 0 # gap between icon and label
+
             bbox = font.getbbox(label)
             width = bbox[2] - bbox[0]
             label_patch_size = (cube_size + de + spacing + width, cube_size + de)
@@ -265,7 +285,10 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
             box.outline = color_map.get(layer_type, {}).get('outline', "#000000")
             box.draw(draw_box)
 
-            text_x = box.x2 + box.de + spacing
+            '''
+            changed spacing to layerspacing
+            '''
+            text_x = box.x2 + box.de + layerspacing 
             text_y = (label_patch_size[1] - text_height) / 2  # 2D center; use text_height and not the current label!
             draw_text.text((text_x, text_y), label, font=font, fill=font_color)
 
@@ -273,30 +296,40 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
             img_box.paste(img_text, mask=img_text)
             patches.append(img_box)
 
-        text = "Conv layer depth  scaled by num filters (= nodes). Dense layer width  by num nodes."
-        
-        print(f'---textsize={size}')
-
-        canvas = Image.new('RGB', (1,1), 'black')
-        print(f'\n---(type)canvas={type(canvas)}')
-        print(f'\n---canvas.size={canvas.size}')
-        drawoncanvas = ImageDraw.Draw(canvas) # grab a pen which draws on that canvas
-        print(f'\n---(type)drawoncanvas={type(drawoncanvas)}')
-        text_box = drawoncanvas.textbbox((0,0), text, font=font)
-        newsize = (text_box[2], text_box[3])
-        print(f'\n---text_box={text_box}')
-        canvas = canvas.resize(newsize)
-        drawoncanvas = ImageDraw.Draw(canvas)
-        text_pos = (0,0)
-        drawoncanvas.text(text_pos, text, font=font, fill=font_color)
-
-        patches.append(canvas)
+        '''
+        added text to explain scaling
+        '''
+        if one_dim_orientation == 'x':
+            infotext = "Conv layer thickness scaled by num filters (= nodes). Dense layer width  by num nodes."
+        elif one_dim_orientation == 'y':
+            infotext = "Conv layer thickness scaled by num filters (= nodes). Dense layer height by num nodes."
+        elif one_dim_orientation == 'z':
+            infotext = "Conv layer thickness scaled by num filters (= nodes). Dense layer depth by num nodes."
 
        
-            
-            
+        print(f'---textsize={size}')
+        infocanvas = Image.new('RGB', (1,1), 'black')
+        print(f'\n---(type)canvas={type(infocanvas)}')
+        print(f'\n---canvas.size={infocanvas.size}')
+        drawoncanvas = ImageDraw.Draw(infocanvas) # grab a pen which draws on that canvas
+        print(f'\n---(type)drawoncanvas={type(drawoncanvas)}')
+        # get size need by text
+        text_box = drawoncanvas.textbbox((0,0), infotext, font=font)
+        newsize = (text_box[2], text_box[3])
+        print(f'\n---text_box={text_box}')
+        # resize canves to fit text
+        infocanvas = infocanvas.resize(newsize)
+        drawoncanvas = ImageDraw.Draw(infocanvas)
+        text_pos = (0,0)
+        # draw text on canvas
+        drawoncanvas.text(text_pos, infotext, font=font, fill=font_color)
 
-        legend_image = linear_layout(patches, max_width=img.width, max_height=img.height, padding=padding, spacing=spacing,
+        patches.append(infocanvas)
+  
+        '''
+        fixed (vertical) spacing for legend at 5
+        '''
+        legend_image = linear_layout(patches, max_width=img.width, max_height=img.height, padding=padding, spacing=20,
                                      background_fill=background_fill, horizontal=True)
         img = vertical_image_concat(img, legend_image, background_fill=background_fill)
 
