@@ -2,7 +2,7 @@
 
 
 
-This is an attempt to get the layered_view method of visualkeras functioning again.
+This is an attempt to get the layered_view method of Paul Gavrikov's Visualkeras functioning again.
 This was the only programmatic visualisation that I could find that met my needs  for another project that required visualisations.
 For fun I thought I'd see if I could get it to work as its own package - visualkeras_mod.
 Now works with Pillow 10.1.0

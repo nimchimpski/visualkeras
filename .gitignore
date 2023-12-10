@@ -1,3 +1,5 @@
 venv/
 tests/
 figures/
+functional_model/
+examples/
