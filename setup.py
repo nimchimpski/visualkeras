@@ -11,9 +11,7 @@ setuptools.setup(
     description="Architecture visualization of Keras models - updated to PILL 8.0.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https:'pillow>=10.1.0',
-        'numpy>=1.26.2',
-        'aggdraw>=1.3.18'//github.com/paulgavrikov/visualkeras, https://github.com/nimchimpski/visualkeras_mod",
+    url="https://github.com/paulgavrikov/visualkeras, https://github.com/nimchimpski/visualkeras_mod",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -21,7 +19,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        
+        'pillow>=10.1.0',
+        'numpy>=1.26.2',
+        'aggdraw>=1.3.18'
     ],
     python_requires='>=3.6',
 )
