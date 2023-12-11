@@ -22,7 +22,7 @@ Possible TODO is normalising the scaling so that visual size is never clipped by
 ## Installation of visualkeras_mod
 
 To install the latest version of this package directly from GitHub, run the following command:
-pip install git+https://github.com/nimchimpski/visualkeras_mod.git@layerfix
+pip install git+https://github.com/nimchimpski/visualkeras_mod.git@layeredfix
 
 Requirements:
 python>=3.1
