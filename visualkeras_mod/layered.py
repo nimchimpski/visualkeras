@@ -98,53 +98,53 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
         else:
             raise RuntimeError(f"not supported tensor shape {layer.output_shape}")
 
-        print(f'\n---index={index}')
-        print(f"---layer_type= {layer_type.__name__}")
-        print(f"---shape={shape}")
+        # print(f'\n---index={index}')
+        # print(f"---layer_type= {layer_type.__name__}")
+        # print(f"---shape={shape}")
 
         # shape >=4 means conv layer
         if len(shape) >= 4:
-            print(f'---len(shape)=>=4 = {shape}')
+            # print(f'---len(shape)=>=4 = {shape}')
             # x should scale with num of neurons (= num filters in conv layer)
-            print(f'---shape[3] num filters={shape[3]}')
+            # print(f'---shape[3] num filters={shape[3]}')
             x = min(max(shape[1] *  scale_xy, x), max_xy)
             linespacing = x / shape[2]
             # y should scale with size of image
             y = min(max(shape[2] * scale_xy, y), max_xy)
             #  z should scale with num of filters
             z = min(max(self_multiply(shape[3:]) * scale_z, z), max_z)
-            print(f"---scaled z by numfilters ~ {shape[3]*scale_z} to {z}")
+            # print(f"---scaled z by numfilters ~ {shape[3]*scale_z} to {z}")
         # shape == 3 means RNN layer
         elif len(shape) == 3:
-            print(f'---len(shape)==3')
+            # print(f'---len(shape)==3')
 
             x = min(max(shape[1] * scale_xy, x), max_xy)
             y = min(max(shape[2] * scale_xy, y), max_xy)
             z = min(max(z), max_z) #???
-            print(f' ---z not scaled')
+            # print(f' ---z not scaled')
         # shape == 2 means dense layer
         elif len(shape) == 2:
             # if flatten layer, scale by num of nodes in previous layer
             if layer_type.__name__ == 'Flatten':
-                print(f'---layer_type==Flatten')
+                # print(f'---layer_type==Flatten')
                 size = model.layers[index - 1].output_shape[3]
-                print(f'---nodes/size={size}')   
+                # print(f'---nodes/size={size}')   
             else:
                 size = shape[1]       
-            print(f'---len(shape)==2. should be a dense layer')
+            # print(f'---len(shape)==2. should be a dense layer')
             # scale x|y|z by num of nodes in layer
             if one_dim_orientation == 'x':
                 x = min(max(size * scale_x, x), max_xy)
-                print(f'---size * {scale_x} = {size * scale_x}')
-                print(f'---x scaled by {size}={x}')
+                # print(f'---size * {scale_x} = {size * scale_x}')
+                # print(f'---x scaled by {size}={x}')
             elif one_dim_orientation == 'y':
                 y = min(max(size * scale_y, y), max_xy)
-                print(f'---size * {scale_y} = {size * scale_y}')
-                print(f'---y scaled by {size}={y}')
+                # print(f'---size * {scale_y} = {size * scale_y}')
+                # print(f'---y scaled by {size}={y}')
             elif one_dim_orientation == 'z':
                 z = min(max(size * scale_z, z), max_z)
-                print(f'---size * {scale_z} = {size * scale_z}') 
-                print(f'---scaled z by {size * scale_z}={z}')
+                # print(f'---size * {scale_z} = {size * scale_z}') 
+                # print(f'---scaled z by {size * scale_z}={z}')
 
                 
             else:
@@ -171,12 +171,12 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
 
         box.fill = color_map.get(layer_type, {}).get('fill', color_wheel.get_color(layer_type))
 
-        print(f"---box.fill={box.fill}")
+        # print(f"---box.fill={box.fill}")
         '''
         changed outline to background_fill
         '''
         box.outline = color_map.get(layer_type, {}).get('outline', background_fill)
-        print(f"\n---box.outline={box.outline}")
+        # print(f"\n---box.outline={box.outline}")
         color_map[layer_type] = {'fill': box.fill, 'outline': box.outline}
 
         box.shade = shade_step
@@ -219,7 +219,7 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
         '''
         # funnelpen = aggdraw.Pen(color_map[tf.keras.layers.Conv2D])
         funnelpen = aggdraw.Pen(next(iter(color_map.values()))['fill'])
-        print(f'---funelpen color = {next(iter(color_map.values()))["fill"]}')
+        # print(f'---funelpen color = {next(iter(color_map.values()))["fill"]}')
 
 
         if last_box is not None and draw_funnel:
@@ -309,16 +309,16 @@ def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, 
             infotext = "Conv layer thickness scaled by num filters (= nodes). Dense layer depth by num nodes."
 
        
-        print(f'---textsize={size}')
+        # print(f'---textsize={size}')
         infocanvas = Image.new('RGB', (1,1), 'black')
-        print(f'\n---(type)canvas={type(infocanvas)}')
-        print(f'\n---canvas.size={infocanvas.size}')
+        # print(f'\n---(type)canvas={type(infocanvas)}')
+        # print(f'\n---canvas.size={infocanvas.size}')
         drawoncanvas = ImageDraw.Draw(infocanvas) # grab a pen which draws on that canvas
-        print(f'\n---(type)drawoncanvas={type(drawoncanvas)}')
+        # print(f'\n---(type)drawoncanvas={type(drawoncanvas)}')
         # get size need by text
         text_box = drawoncanvas.textbbox((0,0), infotext, font=font)
         newsize = (text_box[2], text_box[3])
-        print(f'\n---text_box={text_box}')
+        # print(f'\n---text_box={text_box}')
         # resize canves to fit text
         infocanvas = infocanvas.resize(newsize)
         drawoncanvas = ImageDraw.Draw(infocanvas)
