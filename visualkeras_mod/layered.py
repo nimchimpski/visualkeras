@@ -10,7 +10,7 @@ scaling to y (one_dim_orientation)
 padding to 40
 '''
 
-
+# ::
 def layered_view(model, to_file: str = None, min_z: int = 20, min_xy: int = 20, max_z: int = 400,
                  max_xy: int = 2000, scale_xy: float = 10,
                  scale_z: float = 0.4, scale_x: float = 4, scale_y: float = 4, type_ignore: list = None, index_ignore: list = None,

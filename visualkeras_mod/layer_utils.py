@@ -37,8 +37,8 @@ def model_to_adj_matrix(model):
         if not model.built:
             model.build()
     layers = model.layers
-    print(f"---layers= {layers}")
-    print(f"---num (len) layers= {len(layers)}")
+    # print(f"---layers= {layers}")
+    # print(f"---num (len) layers= {len(layers)}")
     adj_matrix = np.zeros((len(layers), len(layers)))
     id_to_num_mapping = dict()
 
